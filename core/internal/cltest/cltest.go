@@ -1746,7 +1746,7 @@ type SimulateIncomingHeadsArgs struct {
 	Hashes               map[int64]common.Hash
 }
 
-func SimulateIncomingHeads(t *testing.T, args SimulateIncomingHeadsArgs) (cleanup func()) {
+func SimulateIncomingHeads(t *testing.T, args SimulateIncomingHeadsArgs) (cleanup func(), chDone chan struct{}) {
 	t.Helper()
 
 	if args.BackfillDepth == 0 {
@@ -1791,7 +1791,7 @@ func SimulateIncomingHeads(t *testing.T, args SimulateIncomingHeadsArgs) (cleanu
 	defer cancel()
 	chTimeout := time.After(args.Timeout)
 
-	chDone := make(chan struct{})
+	chDone = make(chan struct{})
 	go func() {
 		current := int64(args.StartBlock)
 		for {
@@ -1812,6 +1812,8 @@ func SimulateIncomingHeads(t *testing.T, args SimulateIncomingHeadsArgs) (cleanu
 					ht.OnNewLongestChain(ctx, *heads[current])
 				}
 				if args.EndBlock >= 0 && current == args.EndBlock {
+					defer func() { recover() }()
+					chDone <- struct{}{}
 					return
 				}
 				current++
@@ -1820,12 +1822,13 @@ func SimulateIncomingHeads(t *testing.T, args SimulateIncomingHeadsArgs) (cleanu
 		}
 	}()
 	var once sync.Once
-	return func() {
+	cleanup = func() {
 		once.Do(func() {
 			close(chDone)
 			cancel()
 		})
 	}
+	return
 }
 
 type HeadTrackableFunc func(context.Context, models.Head)

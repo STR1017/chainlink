@@ -69,8 +69,9 @@ type listener struct {
 // Start complies with job.Service
 func (d listener) Start() error {
 	connected, unsubscribe := d.logBroadcaster.Register(d, log.ListenerOpts{
-		Contract: nil,
-		Logs:     []generated.AbigenLog{},
+		Contract:         nil,
+		Logs:             []generated.AbigenLog{},
+		NumConfirmations: 1,
 	})
 	if !connected {
 		return errors.New("Failed to register listener with logBroadcaster")
