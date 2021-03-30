@@ -377,7 +377,7 @@ func (app *ChainlinkApplication) Start() error {
 		return err
 	}
 
-	app.LogBroadcaster.HandleLatestStoredHead(app.HeadTracker.HighestSeenHead())
+	app.LogBroadcaster.SetLatestHeadFromStorage(app.HeadTracker.HighestSeenHead())
 
 	if err := app.Scheduler.Start(); err != nil {
 		return err
