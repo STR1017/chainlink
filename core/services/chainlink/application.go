@@ -293,6 +293,12 @@ func NewApplication(config *orm.Config, ethClient eth.Client, advisoryLocker pos
 	}
 	app.HeadTracker = services.NewHeadTracker(store, headTrackables)
 
+	head, err := app.HeadTracker.HighestSeenHeadFromDB()
+	if err != nil {
+		return nil, err
+	}
+	logBroadcaster.SetLatestHeadFromStorage(head)
+
 	return app, nil
 }
 
@@ -376,8 +382,6 @@ func (app *ChainlinkApplication) Start() error {
 	if err := app.HeadTracker.Start(); err != nil {
 		return err
 	}
-
-	app.LogBroadcaster.SetLatestHeadFromStorage(app.HeadTracker.HighestSeenHead())
 
 	if err := app.Scheduler.Start(); err != nil {
 		return err

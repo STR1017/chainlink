@@ -1812,7 +1812,6 @@ func SimulateIncomingHeads(t *testing.T, args SimulateIncomingHeadsArgs) (func()
 					ht.OnNewLongestChain(ctx, *heads[current])
 				}
 				if args.EndBlock >= 0 && current == args.EndBlock {
-					defer func() { recover() }()
 					chDone <- struct{}{}
 					return
 				}
